@@ -9,13 +9,14 @@ cameraPosition = {ax: 0, ay: 0, radius: 2} // kindof in polar form with ax and a
 settings = {
     view: 'SUN',
     pLock: false,
-    dayTime: 15,
+    dayTime: 60,
     deltaTime: 1/30, // ~30 fps
     radiusEarth: 0.0182985,
     radiusSun: 2,
     distance: 430.996,
     daysInYear: 365.25,
     solarRotT: 27, // sun completes 1 rotation in 27 days
+    noStars: 1000
 }
 var rotationalCoeff, rotationalCoeffSun, revolutionalCoeff, revAngle=Math.PI/2, sunRotAng=0, earthRotAng=0;
 
@@ -46,7 +47,7 @@ ____ __ _ _ __ ___   ___ _ __ __ _
  (_| (_| | | | | | |  __/ | | (_| |
 \___\__,_|_| |_| |_|\___|_|  \__,_|
 */
-const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.01, 3000 );
+const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.00001, 3000 );
 function setCameraPosition(camera, position) {
     if (settings.pLock) {
         position.ax += settings.view=='SUN'?rotationalCoeffSun:rotationalCoeff;
@@ -72,15 +73,23 @@ function changeView() {
     if (settings.view=='SUN') {
         settings.view = 'EARTH';
         cameraPosition.radius = EARTH.geometry.parameters.radius*2
+        document.querySelector('#view').innerHTML = 'EARTH';
     }
     else {
         settings.view = 'SUN';
         cameraPosition.radius = SUN.geometry.parameters.radius*2
-
+        document.querySelector('#view').innerHTML = 'SUN';
     }
 }
 function switchPlock() {
-    settings.pLock = 1-settings.pLock;
+    if (settings.pLock) {
+        settings.pLock = false;
+        document.querySelector('#locker').innerHTML = 'LOCK';
+    }
+    else {
+        settings.pLock = true;
+        document.querySelector('#locker').innerHTML = 'UNLOCK';
+    }
 }
 
 /*
@@ -93,12 +102,16 @@ _                     _     _                     _ _
 window.addEventListener('mousemove', (mouse) => {
     xoff = mouse.movementX;
     if (mouse.buttons) {
-        cameraPosition.ax -= xoff/50
+        cameraPosition.ax -= xoff/250
     }
 }
 );
 window.addEventListener('wheel', (wheel) => {
-    cameraPosition.radius += wheel.deltaY*0.001
+    minRadius = settings.view=='SUN'?settings.radiusSun:settings.radiusEarth
+    cameraPosition.radius += wheel.deltaY*minRadius*0.001;
+    if (cameraPosition.radius < minRadius) {
+        cameraPosition.radius = minRadius+0.001;
+    }
 })
 window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -155,24 +168,24 @@ const EARTH = new THREE.Mesh(
     })
 )
 // background scene
-// const otherStars = [];
-// for (let i=0; i<100; i++) {
-//     let temp = ( new THREE.Mesh(
-//         new THREE.SphereGeometry(settings.radiusSun, 16, 16),
-//         new THREE.MeshBasicMaterial({
-//             color: 0xffffff,
-//         })
-//     ));
-//     let temp_x = 1000*Math.random() - 500, temp_y = 100*Math.random() - 50, temp_z = 1000*Math.random() - 500;
-//     if (temp_x < 0) temp.position.x = -1000+temp_x;
-//     if (temp_x >= 0) temp.position.x = 1000+temp_x;
-//     if (temp_y < 0) temp.position.y = -100+temp_y;
-//     if (temp_y >= 0) temp.position.y = 100+temp_y;
-//     if (temp_z < 0) temp.position.z = -1000+temp_z;
-//     if (temp_z >= 0) temp.position.z = 1000+temp_z;
-    
-//     scene.add( temp );
-// }
+const stars = new THREE.Geometry();
+for (let i=0; i<settings.noStars; i++) {
+    radius = 1500 + 1000*Math.random();
+    angle = 2*Math.PI*Math.random();
+    yoff = Math.random()*3000-1500;
+
+    star = new THREE.Vector3(
+        radius * Math.sin(angle),
+        yoff,
+        radius * Math.cos(angle),
+    )
+    stars.vertices.push(star);
+}
+scene.add( new THREE.Points(
+    stars,
+    new THREE.PointsMaterial( {color: 0xfff0f0, size: 1.5+3*Math.random() })
+))
+
 scene.add( EARTH );
 scene.add( SUN );
 

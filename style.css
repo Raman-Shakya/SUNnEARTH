@@ -8,11 +8,16 @@
     position: fixed;
     display: flex;
     flex-direction: column;
+    width: 100px;
 }
 .settings button {
     flex: 1;
     padding: 10px;
     border: 1px solid #444444;
+    cursor: pointer;
+}
+.settings button:hover {
+    background: #444444;
 }
 canvas {
     position: fixed;
