@@ -1,0 +1,20 @@
+* {
+    margin: 0px;
+    color: white;
+    background: black;
+}
+
+.settings {
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+}
+.settings button {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #444444;
+}
+canvas {
+    position: fixed;
+    left: 0;
+}
